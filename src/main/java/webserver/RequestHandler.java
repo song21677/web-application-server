@@ -9,6 +9,12 @@ import java.net.Socket;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.InputStreamReader;
+import java.io.BufferedReader;
+import java.io.BufferedInputStream;
+
+import java.nio.file.Files;
+import java.nio.file.Paths;
 public class RequestHandler extends Thread {
     private static final Logger log = LoggerFactory.getLogger(RequestHandler.class);
 
@@ -24,8 +30,28 @@ public class RequestHandler extends Thread {
 
         try (InputStream in = connection.getInputStream(); OutputStream out = connection.getOutputStream()) {
             // TODO 사용자 요청에 대한 처리는 이 곳에 구현하면 된다.
-            DataOutputStream dos = new DataOutputStream(out);
-            byte[] body = "First Update".getBytes();
+	    
+	    InputStreamReader ir = new InputStreamReader(in);
+	    BufferedReader br = new BufferedReader(ir);
+	    DataOutputStream dos = new DataOutputStream(out);
+ 	    byte[] body;
+
+	    String line = br.readLine();
+	    String[] requestInfo = line.split(" ");
+	    String path = requestInfo[1];
+	
+	    if (path.equals("/index.html")) {
+    		body = Files.readAllBytes(Paths.get("webapp/index.html"));		    
+	    } else {
+	    	body = "First Update".getBytes();
+	    }
+	   // BufferedInputStream bf = new BufferedInputStream(in);
+	   // byte[] bytes = new byte[8192];
+	   // in.read(bytes, 0, bytes.length);
+	   // for (int i=0; i<bytes.length; i++) {
+	   // 	log.debug("{}", bytes[i]);
+	   // }
+
             response200Header(dos, body.length);
             responseBody(dos, body);
         } catch (IOException e) {
